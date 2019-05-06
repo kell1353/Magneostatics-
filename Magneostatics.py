@@ -1,32 +1,8 @@
 import numpy as np
 from mayavi import mlab
 
-##"""Current"""
-##I = 1 # Current in the positive Z direction
-##"""Distance from current"""
-###s = np.sqrt((x - 0)**2 + (y - 0)**2  + (z - z)**2)
-##x = np.linspace(-np.pi, 0, 4)
-##y = np.linspace(-3*np.pi/2, np.pi/2, 4)
-##xx, yy = np.meshgrid(x,y)
-##
-##min_v = -2
-##max_v = (-min_v)+1
-##def test_quiver3d():
-##    x, y, z = np.mgrid[min_v:max_v, min_v:max_v, min_v:max_v]
-##    r = np.sqrt((x - 0)**2 + (y - 0)**2  + (z - z)**2)
-##    
-##    mag = I/(2*np.pi*(r + .0000000001))
-##    
-####    u = -y * mag * (np.sin(r)/(r + .0001))
-####    v = x * mag * (np.sin(r)/(r + .0001))
-##    u = -y * mag *10
-##    v = x * mag *10
-##    print(u)
-##    w = np.zeros_like(z)
-##    obj = mlab.quiver3d(x, y, z, u, v, w)
-##    return obj
-##
-##
+mlab.figure(bgcolor = (1,1,1))
+
 points_range = 50
 phi = np.linspace(0, 2*np.pi, points_range)
 theta = np.linspace(0, 2*np.pi, points_range)
@@ -53,34 +29,46 @@ def draw_vector(x0, y0, z0, u, v, w):
 ##
 ##draw_sphere(1, 0, 1, .10)
 
-
 n = 20
 x0, y0 = 1, 1
-x = np.linspace(-10, 10, n)
-y = np.linspace(-10, 10, n)
-x, y = np.meshgrid(x, y)
-z = np.zeros((n, n))
+zmin, zmax = -4, 4
+lim = 10
+x = np.linspace(-lim + x0, lim + y0, n)
+y = np.linspace(-lim + x0, lim + y0, n)
+z = np.linspace(zmin, zmax, n)
+x, y, z = np.meshgrid(x, y, z)
+
+#z = np.zeros((n, n))
 
 draw_sphere(x0, y0, 0, .10)
 
 def B(x, y, z):
-    I = 2
-    mu = 2
-    r =  np.sqrt((x)**2 + (y)**2)
-    mag = ((mu/(2*np.pi))*(I/r))
-    theta = np.arctan2(y, x)
+    #Current and magnetic constant
+    I, m_u = 1, 1
+    #m_u = 1.25663706 * (10**(-6))                                   # m*kg/((s^2)*(A^2))
+    #Distance from current 
+    r =  np.sqrt((x - x0)**2 + (y - y0)**2)
+    
+    mag = I*m_u/((2*np.pi)*r)
+    theta = np.arctan2(y - y0, x - x0)
+    
+    #Calculating the vector components
     bx = mag * (-np.sin(theta))
     by = mag * (np.cos(theta))
-    bz = mag * z
+    bz =  z * 0
     return bx,by,bz
 
+
 bx, by, bz = B(x, y, z)
-mlab.quiver3d(x, y, z, bx, by, bz, line_width = 1, scale_factor=1)
+mlab.quiver3d(x, y, z, bx, by, bz, line_width = 1, scale_factor= 4)
 
+t = np.linspace(zmin, zmax, n)
+mlab.plot3d(0*t + x0, 0*t + y0, t)
 
-t = np.linspace(-4, 4, 100)
-mlab.plot3d(0*t, 0*t, t)
-##
+axes = np.linspace(-20, 20, 100)
+x_axis = mlab.plot3d(0*axes, 0*axes, axes, color=(0,0,0), tube_radius = .02)
+y_axis = mlab.plot3d(axes, 0*axes, 0*axes, color=(0,0,0), tube_radius = .02)
+z_axis = mlab.plot3d(0*axes, axes, 0*axes, color=(0,0,0), tube_radius = .02)
 ##test_quiver3d()
 #field_lines = mayavi.mlab.pipeline.streamline(magnitude,seedtype="line",integration_direction="both")
 mlab.show()
