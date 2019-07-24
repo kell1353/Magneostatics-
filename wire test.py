@@ -59,31 +59,31 @@ plt.plot(x3, y3, z3, linewidth=.75, color = 'black')
 ##p(0, 0, 0, 1, 60)
 
 def draw_field(x0, y0, z0, u, v, w):
-    #mlab.quiver3d(x0, y0, z0, u, v, w, line_width = 1, scale_factor= 2)
     plt.quiver(x0, y0, z0, u, v, w)
 
-t = Symbol('t')
+
 def calcDist(x0, y0, z0, x1, y1, z1, xp, yp, zp): #(inital point on line, end point on line, comarison point)
     global dist
+    t = Symbol('t')
     xl = x0 + (x1 - x0)*t 
     yl = y0 + (y1 - y0)*t
     zl = z0 + (z1 - z0)*t
     a = [x1 - x0, y1 - y0, z1 - z0]
 
-    #vector from point to arbitrary point on a line
+    """Vector from point to arbitrary point on a line"""
     vx, vy, vz =  xl - xp, yl - yp, zl - zp
     b = [vx, vy, vz]
 
-    #Solve for t
+    """Solve for t"""
     sol = solve((a[0]*b[0] + a[1]*b[1] + a[2]*b[2]), t)
 
-    #closest point on line
+    """Calculate the closest point on line to our point"""
     xpf = xl.replace(t, float(sol[0]))
     ypf = yl.replace(t, float(sol[0]))
     zpf = zl.replace(t, float(sol[0]))
     pf = (xpf, ypf, zpf)
 
-    #final vector
+    """Solve for the final vector"""
     xf = vx.replace(t, float(sol[0]))
     yf = vy.replace(t, float(sol[0]))
     zf = vz.replace(t, float(sol[0]))
@@ -114,7 +114,7 @@ def rotate(x, y, z, a, b, c, d, e, f, theta):
 
 
 """Line of line segments"""
-    #(x -x0/(x1-x0)) = (y - y0/(y1 - y0)) = (z - z0/(z1 - z0))
+#(x -x0/(x1-x0)) = (y - y0/(y1 - y0)) = (z - z0/(z1 - z0))
 def L(x0, y0, z0, x1, y1, z1, n):                                        # n - number of  dl line segments
     t = np.linspace(0, 1, n)
     x = x0 + (x1 - x0)*t 
@@ -126,7 +126,7 @@ def L(x0, y0, z0, x1, y1, z1, n):                                        # n - n
     
 
 """Line of paralell line segments"""
-def rL(x0, y0, z0, x1, y1, z1, n):                                        # n - number of  dl line segments
+def rL(x0, y0, z0, x1, y1, z1, n):                                      # n - number of  dl line segments
     t = np.linspace(0, 1, n)
     x = x0 + (x1 - x0)*t 
     y = y0 + (y1 - y0)*t
@@ -164,74 +164,6 @@ L(xL0, yL0, zL0, xL1, yL1, zL1, 4)
 for r in np.linspace(.5, 1, 5):
     rL(xL0-r, yL0+r, zL0, xL1-r, yL1+r, zL1, 9)
 
-
-
-"""Parallel Lines"""
-##r = .2
-##L(0-r, 0+r, 0, 1-r, 1+r, 1, 3)
-##
-##lis = [-.2, .3, .8]
-##for i in lis:
-##        rotate(x[i], y[i], z[i], 0, 0, 0, 1, 1, 1)
-
-
-"""Original Line"""
-#p0 = (-1, -1, -1)
-#p1 = (1, 1, 1)
-
-# line equation is :
-#x = x0 + (x1 - (x0))
-#y = y0 + (y1 - (y0))
-#z = z0 + (z1 - (z0))
-x0, x1 = 0, 0
-y0, y1 = -1, 1
-z0, z1 = 0, 0
-
-t = np.linspace(0, 1, 10)
-
-x = x0 + (x1 - (x0))*t
-y = y0 + (y1 - (y0))*t
-z = z0 + (z1 - (z0))*t
-
-plt.plot(x, y, z, linewidth=.75)  
-
-"""Wire that lies straight on the xy plane"""
-def plot_vec(x0, y0, z0, x1, y1, z1):
-    x = [x0, x1]
-    y = [y0, y1]
-    z = [z0, z1]
-
-    plt.plot(x, y, z, linewidth=.75)  
-    ax.scatter(x, y, z)
-    
-    phi = 45
-    theta = np.arctan2(x[1]-x[0], z[1]-z[0])
-    print(theta)
-    I = 1
-    u_0 = 1
-    r = np.sqrt((x[1]-x[0])**2 + (z[1]-z[0])**2)
-    #mag = 4*I*u_0/((2*np.pi)*r)
-    mag = .5
-
-    x = [x1, x1 + (mag)*(cos(theta))*cos()]
-    print(x)
-    y = [y1, y1 + (mag)*(-cos(np.deg2rad(90)))]
-    print(y)
-    z = [z1, z1 + (mag)*(-sin(theta))]
-
-    plt.plot(x, y, z, linewidth=.75, color = 'black')  
-    ax.scatter(x, y, z)
-
-##plot_vec(0 + x0, 0, 0 + z0, 1, 0, 1)
-##plot_vec(0 + x0, 0, 0 + z0, -1, 0, 1)
-##plot_vec(0 + x0, 0, 0 + z0, -1, 0, 0)
-##plot_vec(0 + x0, 0, 0 + z0, 0, 0, 1)
-##plot_vec(0 + x0, .5, 0 + z0, -1, .5, .5)
-
-##plot_vec(0, 0, 0, 0, 0, 1)
-##plot_vec(0, 0, 0, 1, -1, 0)
-##plot_vec(0, 0, 0, 1, -1, 1)
-##plot_vec(.5, .5, 0, 1.5, -.5, 0)
 
 ax.set_xlabel('x axis')
 ax.set_ylabel('y axis')
