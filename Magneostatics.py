@@ -109,7 +109,7 @@ def B(I, x0, y0, z0, x1, y1, z1, n):                                      # n - 
             rotate(x[i], y[i], z[i], xL0, yL0, zL0, xL1, yL1, zL1, angles)
             calcDist(xL0, yL0, zL0, xL1, yL1, zL1, xr, yr, zr)
             
-            ux, uy, uz = -xr, -yr, -zr
+            ux, uy, uz = -(xr-xL0), -(yr-yL0), -(zr-zL0)
             #cross product of the two vectors
             bx = uy*vz - uz*vy
             by = uz*vx - ux*vz
