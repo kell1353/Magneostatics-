@@ -130,16 +130,14 @@ def B2(I, x, y, z, x0, y0, z0, xf, yf, zf):                                     
     print("\nMAGNITUDE")
     mag = I*m_u/(2*np.pi)
     print(mag)
-
-    scaling = 50/dist #################### NEED to fix this
     
-    bx = (mag * (wx))*scaling
+    bx = mag * (wx/dist**2)
     print("\nBX")
     print(bx)
-    by = (mag * (wy))*scaling
+    by = mag * (wy/dist**2)
     print("\nBY")
     print(by)
-    bz =  (mag * (wz))*scaling
+    bz =  mag * (wz/dist**2)
     print("\nBZ")
     print(bz)
     return bx,by,bz
