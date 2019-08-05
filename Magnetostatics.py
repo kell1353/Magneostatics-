@@ -31,9 +31,11 @@ def draw_sphere(x0, y0, z0, r):
     z = (r*cos(phi)) + z0
     sphere = mlab.mesh(x, y, z)
 
+
 """ Draw a vector given the location and components """
 def draw_vector(x0, y0, z0, u, v, w):
     mlab.quiver3d(x0, y0, z0, u, v, w, line_width = 1, scale_factor= 100)
+
 
 """ Line of line segments """
 #(x -x0/(x1-x0)) = (y - y0/(y1 - y0)) = (z - z0/(z1 - z0))
@@ -44,6 +46,7 @@ def L(x0, y0, z0, x1, y1, z1, n):                                        # n - n
     z = z0 + (z1 - z0)*t
 
     wire = mlab.plot3d(x, y, z, color=(1,0,0), tube_radius = .02)
+
 
 """ Calculate the distance of a vector to the closest point on a line """
 #http://mathworld.wolfram.com/Point-LineDistance3-Dimensional.html
@@ -111,6 +114,7 @@ def B(I, x, y, z, x0, y0, z0, xf, yf, zf):      # I is current, x0,y0,z0 initial
     return bx,by,bz
 
 
+
 #######################################################################################
 """ Start Calculating the magnetic field """
 #######################################################################################
@@ -122,7 +126,7 @@ xf, yf, zf =  10, 0, 0
 
 """ Create a grid of points to evaluate the magnetic field at """
 # specify -lim for x,y,z and n = 1 to get single point
-n, lim = 15, 20         # n must be even 
+n, lim = 20, 20         # n must be even 
 x = np.linspace(-lim, lim, n)       # n = 1 if I want only one plane
 y = np.linspace(-lim, lim, n)       
 z = np.linspace(-lim, lim, n)
@@ -132,4 +136,12 @@ B(1, x_grid, y_grid, z_grid, x0, y0, z0, xf, yf, zf)
 L(x0, y0, z0, xf, yf, zf, 10)
 
 draw_vector(x_grid, y_grid, z_grid, bx, by, bz)
+
+"""Figure Functions"""
+mlab.title("Magnetic Field", height = .9, size = .45)
+
+"""Vectorbar functions"""
+vb = mlab.vectorbar(title = "Field Strength (T)", nb_labels = 5)
+vb.scalar_bar_representation.position = [0.006644735064188584, 0.016157157980456187]
+vb.scalar_bar_representation.position2 = [0.5567139298716236, 0.11830171009771967]
 mlab.show()
