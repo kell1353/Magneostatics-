@@ -75,11 +75,11 @@ def calcDist(x0, y0, z0, x1, y1, z1, xp, yp, zp): #(inital point on line, end po
     """Magnitude of Resulting Vector"""
     b0_mag = vectorMag(bx0, by0, bz0)
 
-
+    """Calculate distance in Meters (m)"""
     dist = b0_mag/uMag
 ##    print("\nDISTANCE") ######## Distance should only works for lines a radial distance within the endpoints
 ##    print(dist)
-    return dist
+    return dist             
 
 
 #######################################################################################
@@ -87,19 +87,21 @@ def calcDist(x0, y0, z0, x1, y1, z1, xp, yp, zp): #(inital point on line, end po
 #######################################################################################
 
 """ Create a grid of points to evaluate the magnetic field at """
-n, lim = 10, 20                                                                                     # n must be even 
-x = np.linspace(-lim, lim, n)                                                        # n = 1 if I want only one plane
-y = np.linspace(-lim, lim, n)                                                        #specify -lim for x,y,z and n = 1 to get single point
+# specify -lim for x,y,z and n = 1 to get single point
+n, lim = 15, 20         # n must be even 
+x = np.linspace(-lim, lim, n)       # n = 1 if I want only one plane
+y = np.linspace(-lim, lim, n)       
 z = np.linspace(-lim, lim, n)
 x_grid, y_grid, z_grid = np.meshgrid(x, y, z)
 
 
-""" Calculate the magnetic field vector """
-def B(I, x, y, z, x0, y0, z0, xf, yf, zf):                                      # I is current, x0,y0,z0 initial line point xf,yf,zf end point of line
+""" Calculate the Magnetic Field Vectors in Teslas (T) or (kg/((s^2)(A))"""
+def B(I, x, y, z, x0, y0, z0, xf, yf, zf):      # I is current, x0,y0,z0 initial line point xf,yf,zf end point of line
     global bx; global by; global bz
-    """Magnetic constant"""
+    """Current I is represented in Ampres (A)"""
+    """Magnetic constant in Henry per Meter or (m*kg)/((s^2)(A^2))"""
     u_0 = 1 
-    #u_0 = 1.25663706 * (10**(-6))                                         # m*kg/((s^2)*(A^2))
+    #u_0 = 1.25663706 * (10**(-6)) 
     
     """Nearest distance to the current carrying wire"""
     calcDist(x0, y0, z0, xf, yf, zf, x, y, z)
