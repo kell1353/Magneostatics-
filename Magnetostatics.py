@@ -33,7 +33,7 @@ def draw_sphere(x0, y0, z0, r):
 
 """ Draw a vector given the location and components """
 def draw_vector(x0, y0, z0, u, v, w):
-    mlab.quiver3d(x0, y0, z0, u, v, w, line_width = 1, scale_factor= 4)
+    mlab.quiver3d(x0, y0, z0, u, v, w, line_width = 1, scale_factor= 100)
 
 """ Line of line segments """
 #(x -x0/(x1-x0)) = (y - y0/(y1 - y0)) = (z - z0/(z1 - z0))
@@ -43,41 +43,51 @@ def L(x0, y0, z0, x1, y1, z1, n):                                        # n - n
     y = y0 + (y1 - y0)*t
     z = z0 + (z1 - z0)*t
 
-    wire = mlab.plot3d(x, y, z, color=(0.062, 0.168, 0.717), tube_radius = .02)
-
+    wire = mlab.plot3d(x, y, z, color=(1,0,0), tube_radius = .02)
 
 """ Calculate the distance of a vector to the closest point on a line """
 #http://mathworld.wolfram.com/Point-LineDistance3-Dimensional.html
 def vectorMag(vx, vy, vz):
     return sqrt(vx**2 + vy**2 + vz**2)
 def calcDist(x0, y0, z0, x1, y1, z1, xp, yp, zp): #(inital point on line, end point on line, comparison point)
-    global dist, ux, uy, uz, bx0, by0, bz0
+    global dist, ux, uy, uz, bx0, by0, bz0, b0_mag
     ux, uy, uz = x1 - x0, y1 - y0, z1 - z0
     a = [ux, uy, uz]
-    print(ux, uy, uz)
-    vx, vy, vz = x0 - xp, y0 - yp, z0 - zp
-    #print(vx, vy, vz)
-    print("\nPOINTS")
-    print(xp, yp, zp)
+##    print(ux, uy, uz)
+    vx, vy, vz = xp - x0, yp - y0, zp - z0
+    wx, wy, wz = xp - x1, yp - y1, zp - z1
+##    print(vx, vy, vz)
+##    print("\nPOINTS")
+##    print(xp, yp, zp)
 
-    print("\nCROSS PRODUCT")
-    bx0 = uy*vz - uz*vy
+##    print("\nCROSS PRODUCT")
+    bx0 = vy*wz - vz*wy
     #print(bx0)
-    by0 = uz*vx - ux*vz
-    #print(by0)
-    bz0 = ux*vy - uy*vx
+    by0 = vz*wx - vx*wz
+##    print("\nBY0")
+##    print(by0)
+    bz0 = vx*wy - vy*wx
     #print(bz0)
 
-    print("\nDISTANCE")
-    dist = vectorMag(bx0, by0, bz0)/vectorMag(ux, uy, uz)
-    print(dist)
+    """Magnitude of Initial Vector"""
+    uMag = vectorMag(ux, uy, uz) 
+    """Magnitude of Resulting Vector"""
+    b0_mag = vectorMag(bx0, by0, bz0)
+
+##    print("\nDISTANCE") ######## Distance should only works for lines a radial distance within the endpoints
+    dist = b0_mag/uMag
+##    print(dist)
     return dist
 
 
+#######################################################################################
+""" Start Calculating the magnetic field """
+#######################################################################################
+
 """ Create a grid of points to evaluate the magnetic field at """
-n, lim = 20, 10                                                                                # n must be even 
-x = np.linspace(-10, 10, n)                                                        # n = 1 if I want only one plane
-y = np.linspace(-lim, lim, n)
+n, lim = 10, 20                                                                                     # n must be even 
+x = np.linspace(-lim, lim, n)                                                        # n = 1 if I want only one plane
+y = np.linspace(-lim, lim, n)                                                        #specify -lim for x,y,z and n = 1 to get single point
 z = np.linspace(-lim, lim, n)
 x_grid, y_grid, z_grid = np.meshgrid(x, y, z)
 
@@ -85,39 +95,34 @@ x_grid, y_grid, z_grid = np.meshgrid(x, y, z)
 """ Calculate the magnetic field vector """
 def B(I, x, y, z, x0, y0, z0, xf, yf, zf):                                      # I is current, x0,y0,z0 initial line point xf,yf,zf end point of line
     global bx; global by; global bz
-    t = np.linspace(0, 1, 20)
-    #Current and magnetic constant
-    m_u = 1
-    
+    """Magnetic constant"""
+    u_0 = 1 
     #m_u = 1.25663706 * (10**(-6))                                         # m*kg/((s^2)*(A^2))
-    #Distance from current
-    calcDist(x0, y0, z0, xf, yf, zf, x, y, z)
-    vx, vy, vz = -(x0 - x), -(y0 - y), -(z0 - z)
-
-    wx = uy*vz - uz*vy
-    wy = uz*vx - ux*vz
-    wz = ux*vy - uy*vx
-
-    #Calculating the vector components
-    print("\nMAGNITUDE")
-    mag = I*m_u/(2*np.pi)
-    print(mag)
     
-    bx = mag * (wx/dist**2)
-    print("\nBX")
-    print(bx)
-    by = mag * (wy/dist**2)
-    print("\nBY")
-    print(by)
-    bz =  mag * (wz/dist**2)
-    print("\nBZ")
-    print(bz)
+    """Nearest distance to the current carrying wire"""
+    calcDist(x0, y0, z0, xf, yf, zf, x, y, z)
+
+    """Normalize the vectors"""
+    bx1 = bx0/b0_mag
+    by1 = by0/b0_mag
+    bz1 = bz0/b0_mag
+    
+    """Calculating the vector components for each point in the grid"""
+    bx = I*u_0*bx1/(dist*(2*pi))
+##    print("\nBX")
+##    print(bx)
+    by = I*u_0*by1/(dist*(2*pi))
+##    print("\nBY")
+##    print(by)
+    bz =  I*u_0*bz1/(dist*(2*pi))
+##    print("\nBZ")
+##    print(bz)
     return bx,by,bz
 
 """ Initial Point on the Wire """
-x0, y0, z0 = -1, -4, 0
+x0, y0, z0 = 0, 0, 0
 """ End Point on the Wire """
-xf, yf, zf =  1, 1, 1
+xf, yf, zf =  10, 0, 0
 
 B(1, x_grid, y_grid, z_grid, x0, y0, z0, xf, yf, zf)
 L(x0, y0, z0, xf, yf, zf, 10)
