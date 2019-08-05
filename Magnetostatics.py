@@ -82,19 +82,6 @@ def calcDist(x0, y0, z0, x1, y1, z1, xp, yp, zp): #(inital point on line, end po
     return dist             
 
 
-#######################################################################################
-""" Start Calculating the magnetic field """
-#######################################################################################
-
-""" Create a grid of points to evaluate the magnetic field at """
-# specify -lim for x,y,z and n = 1 to get single point
-n, lim = 15, 20         # n must be even 
-x = np.linspace(-lim, lim, n)       # n = 1 if I want only one plane
-y = np.linspace(-lim, lim, n)       
-z = np.linspace(-lim, lim, n)
-x_grid, y_grid, z_grid = np.meshgrid(x, y, z)
-
-
 """ Calculate the Magnetic Field Vectors in Teslas (T) or (kg/((s^2)(A))"""
 def B(I, x, y, z, x0, y0, z0, xf, yf, zf):      # I is current, x0,y0,z0 initial line point xf,yf,zf end point of line
     global bx; global by; global bz
@@ -123,10 +110,23 @@ def B(I, x, y, z, x0, y0, z0, xf, yf, zf):      # I is current, x0,y0,z0 initial
 ##    print(bz)
     return bx,by,bz
 
+
+#######################################################################################
+""" Start Calculating the magnetic field """
+#######################################################################################
+
 """ Initial Point on the Wire """
 x0, y0, z0 = 0, 0, 0
 """ End Point on the Wire """
 xf, yf, zf =  10, 0, 0
+
+""" Create a grid of points to evaluate the magnetic field at """
+# specify -lim for x,y,z and n = 1 to get single point
+n, lim = 15, 20         # n must be even 
+x = np.linspace(-lim, lim, n)       # n = 1 if I want only one plane
+y = np.linspace(-lim, lim, n)       
+z = np.linspace(-lim, lim, n)
+x_grid, y_grid, z_grid = np.meshgrid(x, y, z)
 
 B(1, x_grid, y_grid, z_grid, x0, y0, z0, xf, yf, zf)
 L(x0, y0, z0, xf, yf, zf, 10)
