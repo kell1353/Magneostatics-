@@ -48,7 +48,7 @@ def wL(x0, y0, z0, x1, y1, z1, n):
     yl = y0 + (y1 - y0)*t
     zl = z0 + (z1 - z0)*t
     wireLine = mlab.plot3d(xl, yl, zl, color=(1, 1, 1), tube_radius = .02)
-    print(xl,yl,zl)
+    #print(xl,yl,zl)
     
 
 #https://sites.google.com/site/glennmurray/Home/rotation-matrices-and-formulas/rotation-about-an-arbitrary-axis-in-3-dimensions
@@ -65,7 +65,7 @@ def wC(x, y, z, a, b, c, d, e, f, n):           # n - number of  dl line segment
     yr = (((b*(u**2 + w**2) - v*(a*u + c*w - u*x - v*y - w*z))*(1 - cos(t)) + L*y*cos(t) + sqrt(L)*(c*u - a*w + w*x - u*z)*sin(t)))/L
     zr = (((c*(u**2 + v**2) - w*(a*u + b*v - u*x - v*y - w*z))*(1 - cos(t)) + L*z*cos(t) + sqrt(L)*(-b*u + a*v - v*x + u*y)*sin(t)))/L
     wireCircle = mlab.plot3d(xr, yr, zr, color=(1, 1, 1), tube_radius = .02)
-    print(xr,yr,zr)
+    #print(xr,yr,zr)
     
 x0, y0, z0, x1, y1, z1, n = 0, 0, 0, 0, 0, 1, 6
 wC(0, 7, 0, x0, y0, z0, x1, y1, z1, n)
