@@ -1,7 +1,5 @@
 import numpy as np
 from mayavi import mlab
-from sympy.solvers import solve
-from sympy import Symbol
 import math
 
 #mlab.figure(bgcolor = (1,1,1))
