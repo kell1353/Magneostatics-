@@ -17,6 +17,14 @@ x_axis = mlab.plot3d(0*axes, 0*axes, axes, color=(0,0,0), tube_radius = .02)
 y_axis = mlab.plot3d(axes, 0*axes, 0*axes, color=(0,0,0), tube_radius = .02)
 z_axis = mlab.plot3d(0*axes, axes, 0*axes, color=(0,0,0), tube_radius = .02)
 
+"Create a grid of points to evaluate the magnetic field at"
+# specify -lim for x,y,z and n = 1 to get single point
+n, lim = 20, 20        # n must be even 
+x = np.linspace(-lim, lim, n)       # n = 1 if I want only one plane
+y = np.linspace(-lim, lim, n)       
+z = np.linspace(-lim, lim, n)
+x_grid, y_grid, z_grid = np.meshgrid(x, y, z)
+
 
 #######################################################################################
 """Graphing Definitions"""
@@ -36,28 +44,29 @@ def draw_sphere(x0, y0, z0, r):
 
 "Draw a vector fields given the tail locations and components"
 def draw_vector(x0, y0, z0, u, v, w):
-    mlab.quiver3d(x0, y0, z0, u, v, w, line_width = 1, scale_factor= 1000000)
+    mlab.quiver3d(x0, y0, z0, u, v, w, line_width = 2, scale_factor= 1000000)
 
 
 "Line of line segments, defined by two endpoints"
 #(x -x0/(x1-x0)) = (y - y0/(y1 - y0)) = (z - z0/(z1 - z0))
 "(x0,y0,z0), (x1,y1,z1) are the endpoints of the wire / n - number of  dl line segments"
-def wL(x0, y0, z0, x1, y1, z1, n): 
+def wL(n, x0, y0, z0, x1, y1, z1):
+    global xl, yl, zl
     t = np.linspace(0, 1, n)
     xl = x0 + (x1 - x0)*t 
     yl = y0 + (y1 - y0)*t
     zl = z0 + (z1 - z0)*t
-    wireLine = mlab.plot3d(xl, yl, zl, color=(1, 1, 1), tube_radius = .02)
+    wireLine = mlab.plot3d(xl, yl, zl, color=(1, 1, 1), tube_radius = .5)
     #print(xl,yl,zl)
     
 
 #https://sites.google.com/site/glennmurray/Home/rotation-matrices-and-formulas/rotation-about-an-arbitrary-axis-in-3-dimensions
 "Circle of line segments around an arbitrary axis, defined by two endpoints"
 "(x,y,z) is point to be rotated to create the circle, (x0,y0,z0), (x1,y1,z1) are the endpoints of the axis"
-def wC(x, y, z, a, b, c, d, e, f, n):           # n - number of  dl line segments
+def wC(n, a, b, c, d, e, f, x, y, z):           # n - number of  dl line segments
     global xr, yr, zr
     t = np.linspace(0, 2*pi, n)
-    "Direrction vector"
+    "Direrction vectors"
     u, v, w = d - a, e - b, f - c
     L = u**2 + v**2 + w**2
 
@@ -65,16 +74,12 @@ def wC(x, y, z, a, b, c, d, e, f, n):           # n - number of  dl line segment
     yr = (((b*(u**2 + w**2) - v*(a*u + c*w - u*x - v*y - w*z))*(1 - cos(t)) + L*y*cos(t) + sqrt(L)*(c*u - a*w + w*x - u*z)*sin(t)))/L
     zr = (((c*(u**2 + v**2) - w*(a*u + b*v - u*x - v*y - w*z))*(1 - cos(t)) + L*z*cos(t) + sqrt(L)*(-b*u + a*v - v*x + u*y)*sin(t)))/L
     wireCircle = mlab.plot3d(xr, yr, zr, color=(1, 1, 1), tube_radius = .02)
-    #print(xr,yr,zr)
-    
-x0, y0, z0, x1, y1, z1, n = 0, 0, 0, 0, 0, 1, 6
-wC(0, 7, 0, x0, y0, z0, x1, y1, z1, n)
 
 
 #######################################################################################
 "Magnetic Calculation Definitions"
 #######################################################################################
-"Calculate angle between point P and each of the endpoints"
+"Calculate angle between position vectors"
 def calcTheta(ux, uy, uz, vx, vy, vz):
     return np.arccos((ux*vx + uy*vy + uz*vz)/(sqrt((ux**2 + uy**2 + uz**2)*(vx**2 + vy**2 + vz**2))))
 
@@ -119,19 +124,14 @@ def calcDist(x0, y0, z0, x1, y1, z1, xp, yp, zp): #(inital point on line, end po
 
 
 "Calculate the Magnetic Field Vectors in Teslas (T) or (kg/((s^2)(A))"
-def B(I, x, y, z, x0, y0, z0, xf, yf, zf):      # I is current, x0,y0,z0 initial line point xf,yf,zf end point of line
-    global bx; global by; global bz
+def B(I, x0, y0, z0, x1, y1, z1, xp, yp, zp):      # I is current, x0,y0,z0 initial line point x1,y1,z1 end point of line
+    global Bx; global By; global Bz
     "Current I is represented in Ampres (A)"
     "Permeability of Free Space in Henry per Meter or ((T*m)/A))"
     u_0 = 4*pi*(10**(-7))
     
     "Nearest distance to the current carrying wire"
-    calcDist(x0, y0, z0, xf, yf, zf, x, y, z)
-
-    "Calculate the angles from the endpoints to our grid points"
-    theta1 = calcTheta(ux, uy, uz, vx, vy, vz)
-    theta2 = calcTheta(ux, uy, uz, wx, wy, wz)
-    ##print(theta1, theta2)
+    calcDist(x0, y0, z0, x1, y1, z1, xp, yp, zp)
 
     "Normalize the vectors"
     bx1 = bx0/b0_mag
@@ -139,47 +139,82 @@ def B(I, x, y, z, x0, y0, z0, xf, yf, zf):      # I is current, x0,y0,z0 initial
     bz1 = bz0/b0_mag
     
     "Calculating the vector components for each point in the grid"
-    bx = I*u_0*bx1/(dist*(2*pi))
-    by = I*u_0*by1/(dist*(2*pi))
-    bz =  I*u_0*bz1/(dist*(2*pi))
+    Bx = I*u_0*bx1/(dist*(2*pi))
+    By = I*u_0*by1/(dist*(2*pi))
+    Bz =  I*u_0*bz1/(dist*(2*pi))
 ##    print(sqrt(bx**2+by**2+bz**2))
 ##    print("\nBX")
-##    print(bx)
+##    print(Bx)
 ##    print("\nBY")
-##    print(by)
+##    print(By)
 ##    print("\nBZ")
-##    print(bz)
-    return bx,by,bz
+##    print(Bz)
+    wL(10, x0, y0, z0, x1, y1, z1)
+    return Bx,By,Bz
+
+
+"Calculate the Magnetic Field Vectors in Teslas (T) or (kg/((s^2)(A))"
+def B2(n, a, b, c, d, e, f, x, y, z):      # I is current, x0,y0,z0 initial line point x1,y1,z1 end point of line
+    global Bx; global By; global Bz
+    t = np.linspace(0, 2*pi, n)
+    "Direrction vectors"
+    u, v, w = d - a, e - b, f - c
+    L = u**2 + v**2 + w**2
+    
+    xrList, yrList, zrList = [], [], []
+    count = 0
+    Bx, By, Bz = np.zeros((n, n, n)), np.zeros((n, n, n)), np.zeros((n, n, n))
+    for i in t:
+        xr = (((a*(v**2 + w**2) - u*(b*v + c*w - u*x - v*y - w*z))*(1 - cos(i)) + L*x*cos(i) + sqrt(L)*(-c*v + b*w - w*y + v*z)*sin(i)))/L
+        yr = (((b*(u**2 + w**2) - v*(a*u + c*w - u*x - v*y - w*z))*(1 - cos(i)) + L*y*cos(i) + sqrt(L)*(c*u - a*w + w*x - u*z)*sin(i)))/L
+        zr = (((c*(u**2 + v**2) - w*(a*u + b*v - u*x - v*y - w*z))*(1 - cos(i)) + L*z*cos(i) + sqrt(L)*(-b*u + a*v - v*x + u*y)*sin(i)))/L
+        xrList.append(xr), yrList.append(yr), zrList.append(zr)
+        if i > 0:
+            xr0, yr0, zr0 = float(xrList[count-1]), float(yrList[count-1]), float(zrList[count-1])
+            bx, by, bz = B(25, xr0, yr0, zr0, xr, yr, zr, x_grid, y_grid, z_grid)
+            wL(10, xr0, yr0, zr0, xr, yr, zr)
+            Bx += bx; By += by; Bz += bz
+        count +=  1
 
 
 #######################################################################################
-"""Start Calculating the magnetic field"""
+"Start Calculating the magnetic field of a sufficiently large wire"
 #######################################################################################
 
-""" Initial Point on the Wire """
-x0, y0, z0 = 0, 0, 0
-""" End Point on the Wire """
-xf, yf, zf =  10, 0, 0
+"Current on an Infinite Wire"
+"Initial Point on the Wire"
+x0, y0, z0 = -20, -20, -20
+"End Point on the Wire"
+x1, y1, z1 =  20, 20, 20
+"Calculate field and graph the wire"
+B(25, x0, y0, z0, x1, y1, z1, x_grid, y_grid, z_grid)
 
-""" Create a grid of points to evaluate the magnetic field at """
-# specify -lim for x,y,z and n = 1 to get single point
-n, lim = 20, 20        # n must be even 
-x = np.linspace(-lim, lim, n)       # n = 1 if I want only one plane
-y = np.linspace(-lim, lim, n)       
-z = np.linspace(-lim, lim, n)
-x_grid, y_grid, z_grid = np.meshgrid(x, y, z)
+#######################################################################################
 
-B(25, x_grid, y_grid, z_grid, x0, y0, z0, xf, yf, zf)
-wL(x0, y0, z0, xf, yf, zf, 10)
+"Current around Loop"
+"Endpoints of vector to rotate circle arounf"
+##x0, y0, z0, x1, y1, z1 = 0, 0, 0, 0, 0, 1
+"Calculate field and graph the wire"
+##B2(n, x0, y0, z0, x1, y1, z1, 0, 7, 0)
 
-"""Scale the vectors up so they can be seen graphically"""
-draw_vector(x_grid, y_grid, z_grid, bx, by, bz)
+##currents = [(-20, -1, 0, 20, -1, 0), (-20, 1, 0, 20, 1, 0)]
+##Bx, By, Bz = np.zeros((n, n, n)), np.zeros((n, n, n)), np.zeros((n, n, n))
+##for i in range(0, len(currents)):
+##    for current in currents:
+##        bx, by, bz = B(25, x_grid, y_grid, z_grid, currents[i][0], currents[i][1], currents[i][2], currents[i][3], currents[i][4], currents[i][5])
+##        wL(currents[i][0], currents[i][1], currents[i][2], currents[i][3], currents[i][4], currents[i][5], 10)
+##        Bx += bx; By += by; Bz += bz
 
-"""Figure Functions"""
+"Scale and plot the vectors up so they can be seen graphically "
+draw_vector(x_grid, y_grid, z_grid, Bx, By, Bz)
+
+#######################################################################################
+
+"Figure Functions"
 mlab.title("Magnetic Field", height = .9, size = .45)
 mlab.view(distance = 200)
 
-"""Vectorbar functions"""
+"Vectorbar functions"
 vb = mlab.vectorbar(title = "Field Strength (T)", nb_labels = 5)
 vb.scalar_bar_representation.position = [0.006644735064188584, 0.016157157980456187]
 vb.scalar_bar_representation.position2 = [0.5567139298716236, 0.11830171009771967]
