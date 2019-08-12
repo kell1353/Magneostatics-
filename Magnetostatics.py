@@ -19,7 +19,7 @@ z_axis = mlab.plot3d(0*axes, axes, 0*axes, color=(0,0,0), tube_radius = .02)
 
 "Create a grid of points to evaluate the magnetic field at"
 # specify -lim for x,y,z and n = 1 to get single point
-n, lim = 20, 20        # n must be even, for current loop n < 10
+n, lim = 25, 20       # For current loop n < 10
 x = np.linspace(-lim, lim, n)       # n = 1 if I want only one plane
 y = np.linspace(-lim, lim, n)       
 z = np.linspace(-lim, lim, n)
@@ -27,10 +27,10 @@ x_grid, y_grid, z_grid = np.meshgrid(x, y, z)
 
 
 #######################################################################################
-"""Graphing Definitions"""
+"Graphing Definitions"
 #######################################################################################
 
-""" Draw 3D points at a given point """
+"Draw 3D points at a given point"
 points_range = 50
 phi = np.linspace(0, 2*np.pi, points_range)
 theta = np.linspace(0, 2*np.pi, points_range)
@@ -85,8 +85,8 @@ def vectorMag(vx, vy, vz):
 
 #http://mathworld.wolfram.com/Point-LineDistance3-Dimensional.html
 "(x0,y0,z0) - inital point of wire, (x1,y1,z1) - end point of wire, (xp, yp, zp) - comparison point(s)"
-def calcDist(x0, y0, z0, x1, y1, z1, xp, yp, zp): #(inital point on line, end point on line, comparison point)
-    global dist, bx0, by0, bz0, b0_mag
+def calcValues(x0, y0, z0, x1, y1, z1, xp, yp, zp): #(inital point on line, end point on line, comparison point)
+    global dist, theta1, theta2, bx0, by0, bz0, b0_mag
     "Calculate all of the Relevent Vectors"
     ux, uy, uz = x1 - x0, y1 - y0, z1 - z0
     vx, vy, vz = xp - x0, yp - y0, zp - z0
@@ -101,6 +101,9 @@ def calcDist(x0, y0, z0, x1, y1, z1, xp, yp, zp): #(inital point on line, end po
     wMag = vectorMag(wx, wy, wz)
     "Magnitude of Resulting Vector from cross product"
     b0_mag = vectorMag(bx0, by0, bz0)
+    "Calculate the angles between the vectors"
+##    theta1 = calcTheta(ux, uy, uz, vx, vy, vz)
+##    theta2 = calcTheta(ux, uy, uz, wx, wy, wz)
     "Calculate distance in Meters (m)"
     dist = b0_mag/uMag
 ##    print("\nDISTANCE") ######## Distance should only works for lines a radial distance within the endpoints
@@ -113,18 +116,41 @@ def B_wire(I, x0, y0, z0, x1, y1, z1, xp, yp, zp):      # I is current, x0,y0,z0
     "Permeability of Free Space in Henry per Meter or ((T*m)/A))"
     u_0 = 4*pi*(10**(-7))
     "Nearest distance to the current carrying wire"
-    calcDist(x0, y0, z0, x1, y1, z1, xp, yp, zp)
-    "Normalize the vectors"
-    bx1 = bx0/b0_mag
-    by1 = by0/b0_mag
-    bz1 = bz0/b0_mag
+    calcValues(x0, y0, z0, x1, y1, z1, xp, yp, zp)
+    "Normalize the vectors and error check for divide by zero"
+    with np.errstate(divide = 'ignore', invalid = 'ignore'):
+        bx1 = np.nan_to_num(bx0/b0_mag)
+        by1 = np.nan_to_num(by0/b0_mag)
+        bz1 = np.nan_to_num(bz0/b0_mag)
     "Calculating the vector components for each point in the grid"
-    bx = I*u_0*bx1/(dist*(2*pi))
-    by = I*u_0*by1/(dist*(2*pi))
-    bz =  I*u_0*bz1/(dist*(2*pi))
+    with np.errstate(divide = 'ignore', invalid = 'ignore'):
+        bx = np.nan_to_num(I*u_0*bx1/(dist*(2*pi)))
+        by = np.nan_to_num(I*u_0*by1/(dist*(2*pi)))
+        bz =  np.nan_to_num(I*u_0*bz1/(dist*(2*pi)))
     
     wL(10, x0, y0, z0, x1, y1, z1)
     return bx,by,bz
+
+##"Calculate the Magnetic Field Vectors of a Wire in Teslas (T) or (kg/((s^2)(A))"
+##def B_wire2(I, n, x0, y0, z0, x1, y1, z1, xp, yp, zp):      # I is current, x0,y0,z0 initial line point x1,y1,z1 end point of line
+##    global bx; global by; global bz
+##    "Current I is represented in Ampres (A)"
+##    "Permeability of Free Space in Henry per Meter or ((T*m)/A))"
+##    u_0 = 4*pi*(10**(-7))
+##    "Nearest distance to the current carrying wire"
+##    calcDist(x0, y0, z0, x1, y1, z1, xp, yp, zp)
+##    "Normalize the vectors"
+##    bx1 = bx0/b0_mag
+##    by1 = by0/b0_mag
+##    bz1 = bz0/b0_mag
+##    "Calculating the vector components for each point in the grid"
+##    print(dist)
+##    bx = (I*u_0*bx1/(dist*(2*pi)))*(sin(pi/n))
+##    by = (I*u_0*by1/(dist*(2*pi)))*(sin(pi/n))
+##    bz =  (I*u_0*bz1/(dist*(2*pi)))*(sin(pi/n))
+##    
+##    wL(10, x0, y0, z0, x1, y1, z1)
+##    return bx,by,bz
 
 
 "Calculate the Magnetic Field Vectors for a Loop in Teslas (T) or (kg/((s^2)(A))"
@@ -141,12 +167,12 @@ def B_loop(n, x0, y0, z0, x1, y1, z1, xp, yp, zp):
         xrList.append(xr), yrList.append(yr), zrList.append(zr)
         if i > 0:
             xr0, yr0, zr0 = float(xrList[count-1]), float(yrList[count-1]), float(zrList[count-1])
-            wL(10, xr0, yr0, zr0, xr, yr, zr)
             #B(25, xr0, yr0, zr0, xr, yr, zr, x_grid, y_grid, z_grid)
-            bx, by, bz = B_wire(25, xr0, yr0, zr0, xr, yr, zr, x_grid, y_grid, z_grid)           
+            #bx, by, bz = B_wire2(25, n-1, xr0, yr0, zr0, xr, yr, zr, x_grid, y_grid, z_grid)
+            bx, by, bz = B_wire(25, xr0, yr0, zr0, xr, yr, zr, x_grid, y_grid, z_grid)  
             Bx += bx; By += by; Bz += bz
         count +=  1
-            
+          
 
 #######################################################################################
 "Start Calculating the magnetic field of a sufficiently large wire"
@@ -154,20 +180,20 @@ def B_loop(n, x0, y0, z0, x1, y1, z1, xp, yp, zp):
 
 "Current on an Infinite Wire(s)"
 "End Points of the Wire"
-rx, ry, rz = 20, 20, 20
+rx, ry, rz = n, n, n
 Bx, By, Bz = np.zeros((rx, rx, rx)), np.zeros((ry, ry, ry)), np.zeros((rz, rz, rz))
-currents = [(-20, -1, 0, 20, -1, 0), (-20, 2, 0, 20, 2, 0)]
+currents = [(25, -20, 0, 0, 20, 0, 0)]#, (0, -20, 0, 0, 20, 0)] #(-20, -20, -20, 20, 20, 20)
 for i in range(0, len(currents)):
     for current in currents:
-        bx, by, bz = B_wire(50, currents[i][0], currents[i][1], currents[i][2], currents[i][3], currents[i][4], currents[i][5], x_grid, y_grid, z_grid)
-        wL(10, currents[i][0], currents[i][1], currents[i][2], currents[i][3], currents[i][4], currents[i][5])
+        bx, by, bz = B_wire(currents[i][0], currents[i][1], currents[i][2], currents[i][3], currents[i][4], currents[i][5], currents[i][6], x_grid, y_grid, z_grid)
+        wL(10, currents[i][1], currents[i][2], currents[i][3], currents[i][4], currents[i][5], currents[i][6])
         Bx += bx; By += by; Bz += bz
 "Scale and plot the vectors up so they can be seen graphically "
 draw_vector(x_grid, y_grid, z_grid, Bx, By, Bz)
 
 
 "Current around Loop"
-"Endpoints of vector to rotate circle around"
+##"Endpoints of vector to rotate circle around"
 ##x0, y0, z0, x1, y1, z1 = 0, 0, 0, 0, 0, 1
 ##"Calculate field and graph the wire"
 ##B_loop(n, x0, y0, z0, x1, y1, z1, 0, 10, 0)
