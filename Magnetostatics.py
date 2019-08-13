@@ -131,27 +131,6 @@ def B_wire(I, x0, y0, z0, x1, y1, z1, xp, yp, zp):      # I is current, x0,y0,z0
     wL(10, x0, y0, z0, x1, y1, z1)
     return bx,by,bz
 
-##"Calculate the Magnetic Field Vectors of a Wire in Teslas (T) or (kg/((s^2)(A))"
-##def B_wire2(I, n, x0, y0, z0, x1, y1, z1, xp, yp, zp):      # I is current, x0,y0,z0 initial line point x1,y1,z1 end point of line
-##    global bx; global by; global bz
-##    "Current I is represented in Ampres (A)"
-##    "Permeability of Free Space in Henry per Meter or ((T*m)/A))"
-##    u_0 = 4*pi*(10**(-7))
-##    "Nearest distance to the current carrying wire"
-##    calcDist(x0, y0, z0, x1, y1, z1, xp, yp, zp)
-##    "Normalize the vectors"
-##    bx1 = bx0/b0_mag
-##    by1 = by0/b0_mag
-##    bz1 = bz0/b0_mag
-##    "Calculating the vector components for each point in the grid"
-##    print(dist)
-##    bx = (I*u_0*bx1/(dist*(2*pi)))*(sin(pi/n))
-##    by = (I*u_0*by1/(dist*(2*pi)))*(sin(pi/n))
-##    bz =  (I*u_0*bz1/(dist*(2*pi)))*(sin(pi/n))
-##    
-##    wL(10, x0, y0, z0, x1, y1, z1)
-##    return bx,by,bz
-
 
 "Calculate the Magnetic Field Vectors for a Loop in Teslas (T) or (kg/((s^2)(A))"
 "I is current, (x0,y0,z0) - inital point and (x1,y1,z1) - end point of axis of rotation, (xp, yp, zp) - point to rotate around the axis"
