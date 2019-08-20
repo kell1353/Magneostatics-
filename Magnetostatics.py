@@ -6,25 +6,8 @@ import math
 
 """ Common Variables """
 sqrt = np.sqrt
-sin = np.sin
-cos = np.cos
-tan = np.tan
+sin, cos, tan = np.sin, np.cos, np.tan
 pi = np.pi
-
-"""Draw the x, y, z axes"""
-axes = np.linspace(-20, 20, 100)
-x_axis = mlab.plot3d(0*axes, 0*axes, axes, color=(0,0,0), tube_radius = .02)
-y_axis = mlab.plot3d(axes, 0*axes, 0*axes, color=(0,0,0), tube_radius = .02)
-z_axis = mlab.plot3d(0*axes, axes, 0*axes, color=(0,0,0), tube_radius = .02)
-
-"Create a grid of points to evaluate the magnetic field at"
-# specify -lim for x,y,z and n = 1 to get single point
-n, lim = 25, 20       # For current loop n < 10
-x = np.linspace(-lim, lim, n)       # n = 1 if I want only one plane
-y = np.linspace(-lim, lim, n)       
-z = np.linspace(-lim, lim, n)
-x_grid, y_grid, z_grid = np.meshgrid(x, y, z)
-
 
 #######################################################################################
 "Graphing Definitions"
@@ -68,7 +51,7 @@ def wC(n, t, x0, y0, z0, x1, y1, z1, x, y, z):           # n - number of  dl lin
     xr = (((x0*(v**2 + w**2) - u*(y0*v + z0*w - u*x - v*y - w*z))*(1 - cos(t)) + L*x*cos(t) + sqrt(L)*(-z0*v + y0*w - w*y + v*z)*sin(t)))/L
     yr = (((y0*(u**2 + w**2) - v*(x0*u + z0*w - u*x - v*y - w*z))*(1 - cos(t)) + L*y*cos(t) + sqrt(L)*(z0*u - x0*w + w*x - u*z)*sin(t)))/L
     zr = (((z0*(u**2 + v**2) - w*(x0*u + y0*v - u*x - v*y - w*z))*(1 - cos(t)) + L*z*cos(t) + sqrt(L)*(-y0*u + x0*v - v*x + u*y)*sin(t)))/L
-    #wireCircle = mlab.plot3d(xr, yr, zr, color=(1, 1, 1), tube_radius = .02)
+    #wireCircle = mlab.plot3d(xr, yr, zr, color=(1, 1, 1), tube_radius = .35)
 
 
 #######################################################################################
@@ -109,6 +92,21 @@ def calcValues(x0, y0, z0, x1, y1, z1, xp, yp, zp): #(inital point on line, end 
 ##    print("\nDISTANCE") ######## Distance should only works for lines a radial distance within the endpoints
 
 
+"Calulate the magnetic field at a given point"
+def calcField_wire(xp, yp, zp):
+    Bx, By, Bz = 0, 0, 0
+    for i in range(0, len(currents)):
+        # Variables
+        I_w =  currents[i][0]
+        x0_w, y0_w, z0_w = currents[i][1], currents[i][2], currents[i][3]
+        x1_w, y1_w, z1_w = currents[i][4], currents[i][5], currents[i][6]
+        # Calculations
+        bx, by, bz = B_wire(I_w, x0_w, y0_w, z0_w, x1_w, y1_w, z1_w, xp, yp, zp)
+        Bx += bx; By += by; Bz += bz
+    mag = vectorMag(Bx, By, Bz)
+    print("\nThe magnetic field at that point is: [" + str(round(Bx, 9)) + ", " + str(round(By, 9)) + ", " + str(round(Bz, 9)) + "].")
+    print("The magnitude of the field is: " + str(round(mag, 9)) + ".")
+
 "Calculate the Magnetic Field Vectors of a Wire in Teslas (T) or (kg/((s^2)(A))"
 def B_wire(I, x0, y0, z0, x1, y1, z1, xp, yp, zp):      # I is current, x0,y0,z0 initial line point x1,y1,z1 end point of line
     global bx; global by; global bz
@@ -127,8 +125,6 @@ def B_wire(I, x0, y0, z0, x1, y1, z1, xp, yp, zp):      # I is current, x0,y0,z0
         bx = np.nan_to_num(I*u_0*bx1/(dist*(2*pi)))
         by = np.nan_to_num(I*u_0*by1/(dist*(2*pi)))
         bz =  np.nan_to_num(I*u_0*bz1/(dist*(2*pi)))
-    
-    wL(10, x0, y0, z0, x1, y1, z1)
     return bx,by,bz
 
 
@@ -138,48 +134,79 @@ def B_loop(n, x0, y0, z0, x1, y1, z1, xp, yp, zp):
     global Bx; global By; global Bz
     t = np.linspace(0, 2*pi, n)
     xrList, yrList, zrList = [], [], []
-    count = 0
-    rp = n
-    Bx, By, Bz = np.zeros((rp, rp, rp)), np.zeros((rp, rp, rp)), np.zeros((rp, rp, rp))          # Put n to all 1 to specify one point
+    count, rp = 0, n         # Set n=1 to specify one point
+    Bx, By, Bz = np.zeros((rp, rp, rp)), np.zeros((rp, rp, rp)), np.zeros((rp, rp, rp))         
     for i in t:
         wC(n, i, x0, y0, z0, x1, y1, z1, xp, yp, zp)
         xrList.append(xr), yrList.append(yr), zrList.append(zr)
         if i > 0:
             xr0, yr0, zr0 = float(xrList[count-1]), float(yrList[count-1]), float(zrList[count-1])
-            #B(25, xr0, yr0, zr0, xr, yr, zr, x_grid, y_grid, z_grid)
-            #bx, by, bz = B_wire2(25, n-1, xr0, yr0, zr0, xr, yr, zr, x_grid, y_grid, z_grid)
             bx, by, bz = B_wire(25, xr0, yr0, zr0, xr, yr, zr, x_grid, y_grid, z_grid)  
             Bx += bx; By += by; Bz += bz
+            wL(10, xr0, yr0, zr0, xr, yr, zr)
         count +=  1
-          
+
 
 #######################################################################################
-"Start Calculating the magnetic field of a sufficiently large wire"
+"End of Definitions"
 #######################################################################################
 
-"Current on an Infinite Wire(s)"
-"End Points of the Wire"
-rx, ry, rz = n, n, n
-Bx, By, Bz = np.zeros((rx, rx, rx)), np.zeros((ry, ry, ry)), np.zeros((rz, rz, rz))
-currents = [(25, -20, 0, 0, 20, 0, 0)]#, (0, -20, 0, 0, 20, 0)] #(-20, -20, -20, 20, 20, 20)
-for i in range(0, len(currents)):
-    for current in currents:
-        bx, by, bz = B_wire(currents[i][0], currents[i][1], currents[i][2], currents[i][3], currents[i][4], currents[i][5], currents[i][6], x_grid, y_grid, z_grid)
-        wL(10, currents[i][1], currents[i][2], currents[i][3], currents[i][4], currents[i][5], currents[i][6])
-        Bx += bx; By += by; Bz += bz
-"Scale and plot the vectors up so they can be seen graphically "
-draw_vector(x_grid, y_grid, z_grid, Bx, By, Bz)
+"Create a grid of points to evaluate the magnetic field at"
+# specify -lim for x,y,z and n = 1 to get single point
+n, lim = 25, 20       # For current loop n < 10
+x = np.linspace(-lim, lim, n)       # n = 1 if I want only one plane
+y = np.linspace(-lim, lim, n)       
+z = np.linspace(-lim, lim, n)
+x_grid, y_grid, z_grid = np.meshgrid(x, y, z)
 
 
-"Current around Loop"
-##"Endpoints of vector to rotate circle around"
-##x0, y0, z0, x1, y1, z1 = 0, 0, 0, 0, 0, 1
-##"Calculate field and graph the wire"
-##B_loop(n, x0, y0, z0, x1, y1, z1, 0, 10, 0)
-##"Scale and plot the vectors up so they can be seen graphically "
-##draw_vector(x_grid, y_grid, z_grid, Bx, By, Bz)
+prompt = input("Would like to calculate the magnetic field around a wire(W) or loop(L)?: ")
+
+"Start Calculating the magnetic fields "
+#######################################################################################
+# Calculating the magnetic field of a sufficiently large wire
+#######################################################################################
+if prompt == "W":               
+    rx, ry, rz = n, n, n
+    Bx, By, Bz = np.zeros((rx, rx, rx)), np.zeros((ry, ry, ry)), np.zeros((rz, rz, rz))
+    "Current and axis for multiple Infinite Wire(s)"
+    currents = [(25, -20, 0, 0, 20, 0, 0)]#, (25, 0, -20, 0, 0, 20, 0)] #(-20, -20, -20, 20, 20, 20)
+    for i in range(0, len(currents)):
+        for current in currents:
+            # Variables
+            I_w =  currents[i][0]
+            x0_w, y0_w, z0_w = currents[i][1], currents[i][2], currents[i][3]
+            x1_w, y1_w, z1_w = currents[i][4], currents[i][5], currents[i][6]
+            # Calculations
+            bx, by, bz = B_wire(I_w, x0_w, y0_w, z0_w, x1_w, y1_w, z1_w, x_grid, y_grid, z_grid)
+            wL(10, x0_w, y0_w, z0_w, x1_w, y1_w, z1_w)
+            Bx += bx; By += by; Bz += bz
+
+    "Scale and plot the vectors up so they can be seen graphically "
+    draw_vector(x_grid, y_grid, z_grid, Bx, By, Bz)
+
+    print("If you would like to know exact vector of the magnetic field at a given point")
+    print("use the definition calcField_wire(x, y, z).")
+
+####################################################################################### 
+# Calculating the magnetic field of a Current around Loop
+#######################################################################################
+elif prompt == "L":   
+    "Endpoints of vector to rotate circle around"
+    x0, y0, z0, x1, y1, z1 = 0, 0, 0, 0, 0, 1
+    "Calculate field and graph the wire"
+    B_loop(n, x0, y0, z0, x1, y1, z1, 0, 10, 0)
+    "Scale and plot the vectors up so they can be seen graphically "
+    draw_vector(x_grid, y_grid, z_grid, Bx, By, Bz)
+
+"Current around Solenoid"
 
 #######################################################################################
+"""Draw the x, y, z axes"""
+axes = np.linspace(-20, 20, 100)
+x_axis = mlab.plot3d(0*axes, 0*axes, axes, color=(0,0,0), tube_radius = .02)
+y_axis = mlab.plot3d(axes, 0*axes, 0*axes, color=(0,0,0), tube_radius = .02)
+z_axis = mlab.plot3d(0*axes, axes, 0*axes, color=(0,0,0), tube_radius = .02)
 
 "Figure Functions"
 mlab.title("Magnetic Field", height = .9, size = .45)
