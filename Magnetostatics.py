@@ -107,6 +107,7 @@ def calcField_wire(xp, yp, zp):
     print("\nThe magnetic field at that point is: [" + str(round(Bx, 9)) + ", " + str(round(By, 9)) + ", " + str(round(Bz, 9)) + "].")
     print("The magnitude of the field is: " + str(round(mag, 9)) + ".")
 
+    
 "Calculate the Magnetic Field Vectors of a Wire in Teslas (T) or (kg/((s^2)(A))"
 def B_wire(I, x0, y0, z0, x1, y1, z1, xp, yp, zp):      # I is current, x0,y0,z0 initial line point x1,y1,z1 end point of line
     global bx; global by; global bz
